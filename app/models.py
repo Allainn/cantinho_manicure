@@ -53,6 +53,12 @@ class Tipo_Usuario(db.Model):
     def __repr__(self):
         return '<Tipo Usuário %r>' % self.descricao
 
+    def to_json(self):
+        json_tipo_usuario = {
+            'url': url_for('api.get_tipo_usuario', id=self.id),
+            'descricao': self.descricao,
+        }
+        return json_tipo_usuario
 
 class Usuario(db.Model):
     __tablename__ = 'usuario'
