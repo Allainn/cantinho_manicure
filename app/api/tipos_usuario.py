@@ -1,7 +1,16 @@
-from flask import jsonify, request, g, url_for, current_app
+from flask import jsonify, request, url_for, current_app, abort
 from .. import db
 from ..models import Tipo_Usuario
 from . import api
+from .errors import forbidden
+
+@api.route('/tipos_usuario/', methods=['POST'])
+def new_tipo_usuario():
+    tipo_usuario = Tipo_Usuario.from_json(request.json)
+    db.session.add(tipo_usuario)
+    db.session.commit()
+    return jsonify(tipo_usuario.to_json()), 201, \
+        {'Location':url_for('api.get_tipo_usuario', id=tipo_usuario.id)}
 
 @api.route('/tipos_usuario/')
 def get_tipos_usuario():

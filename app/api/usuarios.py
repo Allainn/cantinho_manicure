@@ -3,6 +3,8 @@ from .. import db
 from ..models import Usuario
 from . import api
 
+
+
 @api.route('/usuarios/')
 def get_usuarios():
     usuarios = Usuario.query.all()

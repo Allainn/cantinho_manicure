@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from flask import current_app, request, url_for
+from app.exceptions import ValidationError
 
 produto_compra = db.Table ('produto_compra',
    db.Column('produto_id', db.Integer, db.ForeignKey('produto.id')),
@@ -55,10 +56,18 @@ class Tipo_Usuario(db.Model):
 
     def to_json(self):
         json_tipo_usuario = {
+            'id': self.id,
             'url': url_for('api.get_tipo_usuario', id=self.id),
             'descricao': self.descricao,
         }
         return json_tipo_usuario
+
+    @staticmethod
+    def from_json(json_tipo_usuario):
+        descricao = json_tipo_usuario.get('descricao')
+        if descricao is None or descricao == '':
+            raise ValidationError('tipo de usuario nao tem uma descricao')
+        return Tipo_Usuario(descricao = descricao)
 
 class Usuario(db.Model):
     __tablename__ = 'usuario'

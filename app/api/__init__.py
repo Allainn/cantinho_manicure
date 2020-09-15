@@ -1,5 +1,5 @@
 from flask import Blueprint
+
 api = Blueprint('api', __name__)
 
-from . import usuarios
-from . import tipos_usuario
+from . import usuarios, tipos_usuario
