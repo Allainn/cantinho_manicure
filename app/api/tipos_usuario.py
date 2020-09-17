@@ -3,12 +3,17 @@ from .. import db
 from ..models import Tipo_Usuario
 from . import api
 from .errors import forbidden
+from sqlalchemy.exc import IntegrityError
 
 @api.route('/tipos_usuario/', methods=['POST'])
 def new_tipo_usuario():
     tipo_usuario = Tipo_Usuario.from_json(request.json)
-    db.session.add(tipo_usuario)
-    db.session.commit()
+    try:
+        db.session.add(tipo_usuario)
+        db.session.commit()
+    except IntegrityError as err:
+        print(err)
+        abort(400, description="Bad Resquest")
     return jsonify(tipo_usuario.to_json()), 201, \
         {'Location':url_for('api.get_tipo_usuario', id=tipo_usuario.id)}
 

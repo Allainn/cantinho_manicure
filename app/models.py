@@ -96,9 +96,11 @@ class Usuario(db.Model):
 
     def to_json(self):
         json_usuario = {
+            'id': self.id,
             'url': url_for('api.get_usuario', id=self.id),
             'login': self.login,
             'email': self.email,
+            'tipo_usuario': self.tipo_usuario.to_json(),
         }
         return json_usuario
 

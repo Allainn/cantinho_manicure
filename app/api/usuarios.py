@@ -1,4 +1,4 @@
-from flask import jsonify, request, g, url_for, current_app
+from flask import jsonify, request, url_for, current_app
 from .. import db
 from ..models import Usuario
 from . import api
