@@ -1,11 +1,13 @@
 from flask import jsonify, request, url_for, current_app, abort
 from .. import db
-from ..models import Tipo_Usuario
+from ..models import Tipo_Usuario, Permissao
 from . import api
 from .errors import forbidden
 from sqlalchemy.exc import IntegrityError
+#from .decorators import permission_required
 
 @api.route('/tipos_usuario/', methods=['POST'])
+#@permission_required(Permissao.ADMIN)
 def new_tipo_usuario():
     tipo_usuario = Tipo_Usuario.from_json(request.json)
     try:
@@ -17,6 +19,7 @@ def new_tipo_usuario():
     return jsonify(tipo_usuario.to_json()), 201, \
         {'Location':url_for('api.get_tipo_usuario', id=tipo_usuario.id)}
 
+#@auth.login_required
 @api.route('/tipos_usuario/')
 def get_tipos_usuario():
     tipos_usuario = Tipo_Usuario.query.all()

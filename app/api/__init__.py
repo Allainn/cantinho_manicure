@@ -2,4 +2,4 @@ from flask import Blueprint
 
 api = Blueprint('api', __name__)
 
-from . import usuarios, tipos_usuario
+from . import authentication, usuarios, tipos_usuario, errors

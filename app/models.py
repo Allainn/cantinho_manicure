@@ -2,6 +2,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from flask import current_app, request, url_for
 from app.exceptions import ValidationError
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 produto_compra = db.Table ('produto_compra',
    db.Column('produto_id', db.Integer, db.ForeignKey('produto.id')),
@@ -44,6 +45,12 @@ tipo_servico_servico = db.Table ('tipo_servico_servico',
    db.Column('servico_id', db.Integer, db.ForeignKey('servico.id')),
 )
 
+class Permissao:
+    ADMIN = 1
+    CLIENTE = 2
+    FUNCIONARIO = 3
+    CONVIDADO = 4
+
 class Tipo_Usuario(db.Model):
     __tablename__ = 'tipo_usuario'
     id = db.Column(db.Integer, primary_key=True)
@@ -75,6 +82,7 @@ class Usuario(db.Model):
     login = db.Column(db.String(64), unique=True, index=True)
     email = db.Column(db.String(64), unique=True, index=True)
     senha_hash = db.Column(db.String(256))
+    confirmed = db.Column(db.Boolean, default=True)
     tipo_usuario_id = db.Column(db.Integer, db.ForeignKey('tipo_usuario.id'))
 
     funcionarios = db.relationship('Funcionario', backref='usuario', uselist = False)
@@ -103,6 +111,38 @@ class Usuario(db.Model):
             'tipo_usuario': self.tipo_usuario.to_json(),
         }
         return json_usuario
+
+    def generate_auth_token(self, expiration):
+        s = Serializer(current_app.config['SECRET_KEY'], 
+                       expires_in=expiration)
+        return s.dumps({'id': self.id}).decode('utf-8')
+
+    @staticmethod
+    def verify_auth_token(token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token)
+        except:
+            return None
+        return Usuario.query.get(data['id'])
+
+    def can(self, perm):
+        return self.tipo_usuario is not None and self.tipo_usuario == perm
+
+    def confirm(self, token):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token.encode('utf-8'))
+            print('1111')
+        except:
+            print('2222')
+            return False
+        if data.get('confirm') != self.id:
+            print('3333')
+            return False
+        self.confirmed = True
+        db.session.add(self)
+        return True
 
 class Estado(db.Model):
     __tablename__ = 'estado'
