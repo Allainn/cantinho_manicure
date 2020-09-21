@@ -17,7 +17,7 @@ def make_shell_context():
                 Tipo_Servico=Tipo_Servico, produto_tipo_servico=produto_tipo_servico, 
                 equipamento_tipo_servico=equipamento_tipo_servico, Servico=Servico,
                 produto_servico=produto_servico, equipamento_servico=equipamento_servico,
-                tipo_servico_servico=tipo_servico_servico, Agenda=Agenda)
+                tipo_servico_servico=tipo_servico_servico, Agenda=Agenda, TipoUsuarioSchema=TipoUsuarioSchema)
 
 @app.cli.command()
 @click.argument('test_names', nargs=-1)

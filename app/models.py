@@ -3,6 +3,8 @@ from . import db
 from flask import current_app, request, url_for
 from app.exceptions import ValidationError
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from marshmallow import fields
+from marshmallow_sqlalchemy import ModelSchema
 
 produto_compra = db.Table ('produto_compra',
    db.Column('produto_id', db.Integer, db.ForeignKey('produto.id')),
@@ -56,7 +58,7 @@ class Tipo_Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.String(64), unique=True)
 
-    users = db.relationship('Usuario', backref='tipo_usuario', lazy='dynamic')
+    usuarios = db.relationship('Usuario', backref='tipo_usuario', lazy='dynamic')
 
     def __repr__(self):
         return '<Tipo Usuário %r>' % self.descricao
@@ -337,3 +339,7 @@ class Agenda(db.Model):
     servico_id = db.Column(db.Integer, db.ForeignKey('servico.id'))
     data = db.Column(db.DateTime)
     observacao = db.Column(db.String(256))
+
+class TipoUsuarioSchema(ModelSchema):
+    class Meta:
+        model = Tipo_Usuario

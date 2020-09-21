@@ -22,6 +22,18 @@ class ProductionConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'mysql://root:abcd@1234@localhost/cantinho_manicure?unix_socket=/var/run/mysqld/mysqld.sock'
     #SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
 
+class HerokuConfig(ProductionConfig):
+    @classmethod
+    def init_app(cls, app):
+        ProductionConfig.init_app(app)
+
+        # log em stderr
+        import logging
+        from logging import StreamHandler
+        file_handler = StreamHandler
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+
 config = {
     'development': DevelopmentConfig,
     'testing': TestingConfig,
