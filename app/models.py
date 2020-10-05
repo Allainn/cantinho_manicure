@@ -7,44 +7,44 @@ from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema
 
 produto_compra = db.Table ('produto_compra',
-   db.Column('produto_id', db.Integer, db.ForeignKey('produto.id')),
-   db.Column('compra_id', db.Integer, db.ForeignKey('compra.id')),
-   db.Column('valor', db.Numeric(10,2))
+   db.Column('produto_id', db.Integer, db.ForeignKey('produto.id'), nullable=False),
+   db.Column('compra_id', db.Integer, db.ForeignKey('compra.id'), nullable=False),
+   db.Column('valor', db.Numeric(10,2), nullable=False)
 )
 
 produto_tipo_servico = db.Table ('produto_tipo_servico',
-   db.Column('produto_id', db.Integer, db.ForeignKey('produto.id')),
-   db.Column('tipo_servico_id', db.Integer, db.ForeignKey('tipo_servico.id')),
-   db.Column('quantidade', db.Integer)
+   db.Column('produto_id', db.Integer, db.ForeignKey('produto.id'), nullable=False),
+   db.Column('tipo_servico_id', db.Integer, db.ForeignKey('tipo_servico.id'), nullable=False),
+   db.Column('quantidade', db.Integer, nullable=False)
 )
 
 equipamento_tipo_servico = db.Table ('equipamento_tipo_servico',
-   db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamento.id')),
-   db.Column('tipo_servico_id', db.Integer, db.ForeignKey('tipo_servico.id')),
-   db.Column('tempo', db.Integer)
+   db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamento.id'), nullable=False),
+   db.Column('tipo_servico_id', db.Integer, db.ForeignKey('tipo_servico.id'), nullable=False),
+   db.Column('tempo', db.Integer, nullable=False)
 )
 
 equipamento_compra = db.Table ('equipamento_compra',
-   db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamento.id')),
-   db.Column('compra_id', db.Integer, db.ForeignKey('compra.id')),
-   db.Column('valor', db.Numeric(10,2))
+   db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamento.id'), nullable=False),
+   db.Column('compra_id', db.Integer, db.ForeignKey('compra.id'), nullable=False),
+   db.Column('valor', db.Numeric(10,2), nullable=False)
 )
 
 produto_servico = db.Table ('produto_servico',
-   db.Column('produto_id', db.Integer, db.ForeignKey('produto.id')),
-   db.Column('servico_id', db.Integer, db.ForeignKey('servico.id')),
-   db.Column('quantidade', db.Integer)
+   db.Column('produto_id', db.Integer, db.ForeignKey('produto.id'), nullable=False),
+   db.Column('servico_id', db.Integer, db.ForeignKey('servico.id'), nullable=False),
+   db.Column('quantidade', db.Integer, nullable=False)
 )
 
 equipamento_servico = db.Table ('equipamento_servico',
-   db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamento.id')),
-   db.Column('servico_id', db.Integer, db.ForeignKey('servico.id')),
-   db.Column('tempo', db.Integer)
+   db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamento.id'), nullable=False),
+   db.Column('servico_id', db.Integer, db.ForeignKey('servico.id'), nullable=False),
+   db.Column('tempo', db.Integer, nullable=False)
 )
 
 tipo_servico_servico = db.Table ('tipo_servico_servico',
-   db.Column('tipo_servico_id', db.Integer, db.ForeignKey('tipo_servico.id')),
-   db.Column('servico_id', db.Integer, db.ForeignKey('servico.id')),
+   db.Column('tipo_servico_id', db.Integer, db.ForeignKey('tipo_servico.id'), nullable=False),
+   db.Column('servico_id', db.Integer, db.ForeignKey('servico.id'), nullable=False),
 )
 
 class Permissao:
@@ -56,7 +56,7 @@ class Permissao:
 class Tipo_Usuario(db.Model):
     __tablename__ = 'tipo_usuario'
     id = db.Column(db.Integer, primary_key=True)
-    descricao = db.Column(db.String(64), unique=True)
+    descricao = db.Column(db.String(64), unique=True, nullable=False)
 
     usuarios = db.relationship('Usuario', backref='tipo_usuario', lazy='dynamic')
 
@@ -81,11 +81,11 @@ class Tipo_Usuario(db.Model):
 class Usuario(db.Model):
     __tablename__ = 'usuario'
     id = db.Column(db.Integer, primary_key=True)
-    login = db.Column(db.String(64), unique=True, index=True)
-    email = db.Column(db.String(64), unique=True, index=True)
-    senha_hash = db.Column(db.String(256))
-    confirmed = db.Column(db.Boolean, default=True)
-    tipo_usuario_id = db.Column(db.Integer, db.ForeignKey('tipo_usuario.id'))
+    login = db.Column(db.String(64), unique=True, index=True, nullable=False)
+    email = db.Column(db.String(64), unique=True, index=True, nullable=False)
+    senha_hash = db.Column(db.String(256), nullable=False)
+    confirmado = db.Column(db.Boolean, default=True, nullable=False)
+    tipo_usuario_id = db.Column(db.Integer, db.ForeignKey('tipo_usuario.id'), nullable=False)
 
     funcionarios = db.relationship('Funcionario', backref='usuario', uselist = False)
     clientes = db.relationship('Cliente', backref='usuario', uselist = False)
@@ -149,7 +149,7 @@ class Usuario(db.Model):
 class Estado(db.Model):
     __tablename__ = 'estado'
     id = db.Column(db.Integer, primary_key=True)
-    descricao = db.Column(db.String(2), unique=True)
+    descricao = db.Column(db.String(2), unique=True, nullable=False)
 
     cidade = db.relationship('Cidade', backref='estado', lazy='dynamic')
 
@@ -159,8 +159,8 @@ class Estado(db.Model):
 class Cidade(db.Model):
     __tablename__ = 'cidade'
     id = db.Column(db.Integer, primary_key=True)
-    descricao = db.Column(db.String(64))
-    estado_id = db.Column(db.Integer, db.ForeignKey('estado.id'))
+    descricao = db.Column(db.String(64), nullable=False)
+    estado_id = db.Column(db.Integer, db.ForeignKey('estado.id'), nullable=False)
 
     bairro = db.relationship('Bairro', backref='cidade', lazy='dynamic')
 
@@ -170,8 +170,8 @@ class Cidade(db.Model):
 class Bairro(db.Model):
     __tablename__ = 'bairro'
     id = db.Column(db.Integer, primary_key=True)
-    descricao = db.Column(db.String(64))
-    cidade_id = db.Column(db.Integer, db.ForeignKey('cidade.id'))
+    descricao = db.Column(db.String(64), nullable=False)
+    cidade_id = db.Column(db.Integer, db.ForeignKey('cidade.id'), nullable=False)
 
     endereco = db.relationship('Endereco', backref='bairro', lazy='dynamic')
 
@@ -181,9 +181,9 @@ class Bairro(db.Model):
 class Endereco(db.Model):
     __tablename__ = 'endereco'
     id = db.Column(db.Integer, primary_key=True)
-    rua = db.Column(db.String(64))
+    rua = db.Column(db.String(64), nullable=False)
     complemento = db.Column(db.String(64), nullable=True)
-    bairro_id = db.Column(db.Integer, db.ForeignKey('bairro.id'))
+    bairro_id = db.Column(db.Integer, db.ForeignKey('bairro.id'), nullable=False)
 
     funcionarios = db.relationship('Funcionario', backref='endereco', lazy='dynamic')
     clientes = db.relationship('Cliente', backref='endereco', lazy='dynamic')
@@ -195,13 +195,13 @@ class Endereco(db.Model):
 class Funcionario(db.Model):
     __tablename__ = 'funcionario'
     id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(64))
+    nome = db.Column(db.String(64), nullable=False)
     telefone1 = db.Column(db.String(20), nullable=True)
     telefone2 = db.Column(db.String(20), nullable=True)
     data_nascimento = db.Column(db.Date, nullable=True)
-    endereco_id = db.Column(db.Integer, db.ForeignKey('endereco.id'))
+    endereco_id = db.Column(db.Integer, db.ForeignKey('endereco.id'), nullable=False)
     numero = db.Column(db.String(10), nullable=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
 
     def __repr__(self):
         return '<Funcionario %r>' % self.nome
@@ -209,15 +209,15 @@ class Funcionario(db.Model):
 class Cliente(db.Model):
     __tablename__ = 'cliente'
     id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(64))
-    endereco_id = db.Column(db.Integer, db.ForeignKey('endereco.id'))
+    nome = db.Column(db.String(64), nullable=False)
+    endereco_id = db.Column(db.Integer, db.ForeignKey('endereco.id'), nullable=False)
     numero = db.Column(db.String(10), nullable=True)
-    telefone1 = db.Column(db.String(20))
+    telefone1 = db.Column(db.String(20), nullable=False)
     telefone2 = db.Column(db.String(20), nullable=True)
     data_nascimento = db.Column(db.Date, nullable=True)
-    instagram = db.Column(db.String(64))
-    facebook = db.Column(db.String(64))
-    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'))
+    instagram = db.Column(db.String(64), nullable=True)
+    facebook = db.Column(db.String(64), nullable=True)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
 
     def __repr__(self):
         return '<Cliente %r>' % self.nome
@@ -225,17 +225,17 @@ class Cliente(db.Model):
 class Fornecedor(db.Model):
     __tablename__ = 'fornecedor'
     id = db.Column(db.Integer, primary_key=True)
-    nome = db.Column(db.String(64))
+    nome = db.Column(db.String(64), nullable=False)
     email = db.Column(db.String(64), nullable=True)
-    endereco_id = db.Column(db.Integer, db.ForeignKey('endereco.id'))
+    endereco_id = db.Column(db.Integer, db.ForeignKey('endereco.id'), nullable=False)
     numero = db.Column(db.String(10), nullable=True)
-    telefone1 = db.Column(db.String(20))
+    telefone1 = db.Column(db.String(20), nullable=False)
     telefone2 = db.Column(db.String(20), nullable=True)
     data_nascimento = db.Column(db.Date, nullable=True)
-    site = db.Column(db.String(64))
-    instagram = db.Column(db.String(64))
-    facebook = db.Column(db.String(64))
-    observacao = db.Column(db.String(256))
+    site = db.Column(db.String(64), nullable=True)
+    instagram = db.Column(db.String(64), nullable=True)
+    facebook = db.Column(db.String(64), nullable=True)
+    observacao = db.Column(db.String(256), nullable=True)
 
     def __repr__(self):
         return '<Fornecedor %r>' % self.nome
@@ -244,7 +244,7 @@ class Tipo_Quantidade(db.Model):
     __tablename__ = 'tipo_quantidade'
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.String(64), nullable=True)
-    sigla = db.Column(db.String(2))
+    sigla = db.Column(db.String(2), nullable=False)
 
     def __repr__(self):
         return '<Tipo Quantidade %r>' % self.sigla
@@ -252,11 +252,11 @@ class Tipo_Quantidade(db.Model):
 class Produto(db.Model):
     __tablename__ = 'produto'
     id = db.Column(db.Integer, primary_key=True)
-    descricao = db.Column(db.String(64))
-    quantidade = db.Column(db.Integer)
-    tipo_quantidade_id = db.Column(db.Integer, db.ForeignKey('tipo_quantidade.id'))
-    preco_un = db.Column(db.Numeric(10,2))
-    observacao = db.Column(db.String(256))
+    descricao = db.Column(db.String(64), nullable=False)
+    quantidade = db.Column(db.Integer, nullable=False)
+    tipo_quantidade_id = db.Column(db.Integer, db.ForeignKey('tipo_quantidade.id'), nullable=False)
+    preco_un = db.Column(db.Numeric(10,2), nullable=False)
+    observacao = db.Column(db.String(256), nullable=True)
 
     compras = db.relationship('Compra', 
                                secondary = produto_compra,  
@@ -266,10 +266,10 @@ class Produto(db.Model):
 class Equipamento(db.Model):
     __tablename__ = 'equipamento'
     id = db.Column(db.Integer, primary_key=True)
-    descricao = db.Column(db.String(64))
-    tempo = db.Column(db.Integer)
-    preco_tempo = db.Column(db.Numeric(10,2))
-    observacao = db.Column(db.String(256))
+    descricao = db.Column(db.String(64), nullable=False)
+    tempo = db.Column(db.Integer, nullable=False)
+    preco_tempo = db.Column(db.Numeric(10,2), nullable=False)
+    observacao = db.Column(db.String(256), nullable=True)
 
     compras = db.relationship('Compra', 
                                secondary = equipamento_compra,  
@@ -279,10 +279,10 @@ class Equipamento(db.Model):
 class Compra(db.Model):
     __tablename__ = 'compra'
     id = db.Column(db.Integer, primary_key=True)
-    fornecedor_id = db.Column(db.Integer, db.ForeignKey('fornecedor.id'))
-    valor = db.Column(db.Numeric(10,2))
-    data = db.Column(db.Date)
-    observacao = db.Column(db.String(256))
+    fornecedor_id = db.Column(db.Integer, db.ForeignKey('fornecedor.id'), nullable=False)
+    valor = db.Column(db.Numeric(10,2), nullable=False)
+    data = db.Column(db.Date, nullable=False)
+    observacao = db.Column(db.String(256), nullable=True)
 
     produtos = db.relationship('Produto', 
                                secondary = produto_compra, 
@@ -296,10 +296,10 @@ class Compra(db.Model):
 class Tipo_Servico(db.Model):
     __tablename__ = 'tipo_servico'
     id = db.Column(db.Integer, primary_key=True)
-    descricao = db.Column(db.String(64))
-    tempo = db.Column(db.Integer)
-    valor = db.Column(db.Numeric(10,2))
-    observacao = db.Column(db.String(256))
+    descricao = db.Column(db.String(64), nullable=False)
+    tempo = db.Column(db.Integer, nullable=False)
+    valor = db.Column(db.Numeric(10,2), nullable=False)
+    observacao = db.Column(db.String(256), nullable=True)
 
     produtos = db.relationship('Produto', 
                                secondary = produto_tipo_servico, 
@@ -313,10 +313,10 @@ class Tipo_Servico(db.Model):
 class Servico(db.Model):
     __tablename__ = 'servico'
     id = db.Column(db.Integer, primary_key=True)
-    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'))
-    valor = db.Column(db.Numeric(10,2))
-    tempo = db.Column(db.Integer)
-    observacao = db.Column(db.String(256))
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=False)
+    valor = db.Column(db.Numeric(10,2), nullable=False)
+    tempo = db.Column(db.Integer, nullable=False)
+    observacao = db.Column(db.String(256), nullable=True)
 
     tipos_servico = db.relationship('Tipo_Servico', 
                                     secondary = tipo_servico_servico, 
@@ -335,10 +335,10 @@ class Servico(db.Model):
 class Agenda(db.Model):
     __tablename__ = 'agenda'
     id = db.Column(db.Integer, primary_key=True)
-    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'))
-    servico_id = db.Column(db.Integer, db.ForeignKey('servico.id'))
-    data = db.Column(db.DateTime)
-    observacao = db.Column(db.String(256))
+    cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=False)
+    servico_id = db.Column(db.Integer, db.ForeignKey('servico.id'), nullable=False)
+    data = db.Column(db.DateTime, nullable=False)
+    observacao = db.Column(db.String(256), nullable=True)
 
 class TipoUsuarioSchema(ModelSchema):
     class Meta:

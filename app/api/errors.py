@@ -20,13 +20,18 @@ def forbidden(message):
     response.status_code = 403
     return response
 
+def bad_request2(message, messageUser=None):
+    response = jsonify({'mensagemUsuario': messageUser, 'mensagemDesenvolvedor': message})
+    response.status_code = 400
+    return response
+
 @api.errorhandler(500)
 def not_found(message):
     return jsonify(error=str(message)), 500
 
 @api.errorhandler(400)
 def bad_request(message):
-    return jsonify(error=str(message)), 400
+    return jsonify(mensagemUsuario='Mensagem inválida' ,mensagemDesenvolvedor=str(message)), 400
 
 @api.errorhandler(404)
 def not_found(message):

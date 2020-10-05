@@ -39,7 +39,7 @@ def upgrade():
     )
     op.create_table('estado',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('descricao', sa.String(length=2), nullable=True),
+    sa.Column('descricao', sa.String(length=2), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('descricao')
     )
