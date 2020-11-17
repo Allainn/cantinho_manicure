@@ -58,7 +58,7 @@ class Tipo_Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.String(64), unique=True, nullable=False)
 
-    #usuarios = db.relationship('Usuario', backref='tipo_usuario', lazy='dynamic')
+    usuarios = db.relationship('Usuario', backref='tipo_usuario', lazy='dynamic')
 
     def __repr__(self):
         return '<Tipo Usuário %r>' % self.descricao
@@ -77,10 +77,6 @@ class Tipo_Usuario(db.Model):
         if descricao is None or descricao == '':
             raise ValidationError('tipo de usuario nao tem uma descricao')
         return Tipo_Usuario(descricao = descricao)
-
-class TipoUsuarioSchema(ModelSchema):
-    class Meta:
-        model = Tipo_Usuario
 
 class Usuario(db.Model):
     __tablename__ = 'usuario'
@@ -117,6 +113,13 @@ class Usuario(db.Model):
             'tipo_usuario': self.tipo_usuario.to_json(),
         }
         return json_usuario
+
+    @staticmethod
+    def from_json(json_tipo_usuario):
+        descricao = json_tipo_usuario.get('descricao')
+        if descricao is None or descricao == '':
+            raise ValidationError('tipo de usuario nao tem uma descricao')
+        return Tipo_Usuario(descricao = descricao)
 
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'], 
@@ -157,6 +160,15 @@ class Estado(db.Model):
     uf = db.Column(db.String(2), unique=True, nullable=False)
 
     cidade = db.relationship('Cidade', backref='estado', lazy='dynamic')
+
+    def to_json(self):
+        json_estado = {
+            'id': self.id,
+            'url': url_for('api.get_estado', id=self.id),
+            'nome': self.nome,
+            'uf': self.uf,
+        }
+        return json_estado
 
     def __repr__(self):
         return '<Estado %r>' % self.descricao
@@ -344,3 +356,7 @@ class Agenda(db.Model):
     servico_id = db.Column(db.Integer, db.ForeignKey('servico.id'), nullable=False)
     data = db.Column(db.DateTime, nullable=False)
     observacao = db.Column(db.String(256), nullable=True)
+
+class TipoUsuarioSchema(ModelSchema):
+    class Meta:
+        model = Tipo_Usuario
