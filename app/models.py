@@ -181,6 +181,15 @@ class Cidade(db.Model):
 
     bairro = db.relationship('Bairro', backref='cidade', lazy='dynamic')
 
+    def to_json(self):
+        json_cidade = {
+            'id': self.id,
+            'url': url_for('api.get_cidade', id=self.id),
+            'descricao': self.descricao,
+            'estado': self.estado.to_json(),
+        }
+        return json_cidade
+
     def __repr__(self):
         return '<Cidade %r>' % self.descricao
 
@@ -189,6 +198,15 @@ class Bairro(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.String(64), nullable=False)
     cidade_id = db.Column(db.Integer, db.ForeignKey('cidade.id'), nullable=False)
+
+    def to_json(self):
+        json_bairro = {
+            'id': self.id,
+            'url': url_for('api.get_bairro', id=self.id),
+            'descricao': self.descricao,
+            'cidade': self.cidade.to_json(),
+        }
+        return json_bairro
 
     endereco = db.relationship('Endereco', backref='bairro', lazy='dynamic')
 
@@ -201,6 +219,16 @@ class Endereco(db.Model):
     rua = db.Column(db.String(64), nullable=False)
     complemento = db.Column(db.String(64), nullable=True)
     bairro_id = db.Column(db.Integer, db.ForeignKey('bairro.id'), nullable=False)
+
+    def to_json(self):
+        json_endereco = {
+            'id': self.id,
+            'url': url_for('api.get_endereco', id=self.id),
+            'rua': self.rua,
+            'complemento': self.complemento,
+            'bairro': self.bairro.to_json(),
+        }
+        return json_endereco
 
     funcionarios = db.relationship('Funcionario', backref='endereco', lazy='dynamic')
     clientes = db.relationship('Cliente', backref='endereco', lazy='dynamic')
@@ -360,3 +388,11 @@ class Agenda(db.Model):
 class TipoUsuarioSchema(ModelSchema):
     class Meta:
         model = Tipo_Usuario
+
+class BairroSchema(ModelSchema):
+    class Meta:
+        model = Bairro
+
+class EnderecoSchema(ModelSchema):
+    class Meta:
+        model = Endereco

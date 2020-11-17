@@ -3,7 +3,7 @@ from .. import db
 from ..models import Tipo_Usuario, Permissao, TipoUsuarioSchema
 from . import api
 from .errors import forbidden, bad_request2
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 from marshmallow.exceptions import ValidationError
 #from .decorators import permission_required
 
@@ -24,6 +24,10 @@ def new_tipo_usuario():
         db.session.commit()
     except IntegrityError as err:
         abort(400, description=str(err))
+    except OperationalError as err:
+        #print(err._message().split('"'))
+        msg = err._message().split('"')[1]
+        return bad_request2(str(err), msg)
     return jsonify(tipo_usuario.to_json()), 201, \
         {'Location':url_for('api.get_tipo_usuario', id=tipo_usuario.id)}
 
