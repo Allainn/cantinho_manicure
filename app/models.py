@@ -58,7 +58,7 @@ class Tipo_Usuario(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.String(64), unique=True, nullable=False)
 
-    usuarios = db.relationship('Usuario', backref='tipo_usuario', lazy='dynamic')
+    #usuarios = db.relationship('Usuario', backref='tipo_usuario', lazy='dynamic')
 
     def __repr__(self):
         return '<Tipo Usuário %r>' % self.descricao
@@ -77,6 +77,10 @@ class Tipo_Usuario(db.Model):
         if descricao is None or descricao == '':
             raise ValidationError('tipo de usuario nao tem uma descricao')
         return Tipo_Usuario(descricao = descricao)
+
+class TipoUsuarioSchema(ModelSchema):
+    class Meta:
+        model = Tipo_Usuario
 
 class Usuario(db.Model):
     __tablename__ = 'usuario'
@@ -149,7 +153,8 @@ class Usuario(db.Model):
 class Estado(db.Model):
     __tablename__ = 'estado'
     id = db.Column(db.Integer, primary_key=True)
-    descricao = db.Column(db.String(2), unique=True, nullable=False)
+    nome = db.Column(db.String(25), unique=True, nullable=False)
+    uf = db.Column(db.String(2), unique=True, nullable=False)
 
     cidade = db.relationship('Cidade', backref='estado', lazy='dynamic')
 
@@ -339,7 +344,3 @@ class Agenda(db.Model):
     servico_id = db.Column(db.Integer, db.ForeignKey('servico.id'), nullable=False)
     data = db.Column(db.DateTime, nullable=False)
     observacao = db.Column(db.String(256), nullable=True)
-
-class TipoUsuarioSchema(ModelSchema):
-    class Meta:
-        model = Tipo_Usuario
