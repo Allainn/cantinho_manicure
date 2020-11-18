@@ -1,10 +1,12 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from flask import current_app, request, url_for
+from flask_login import UserMixin, AnonymousUserMixin, LoginManager
 from app.exceptions import ValidationError
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema
+#from flask.ext.login import LoginManager
 
 produto_compra = db.Table ('produto_compra',
    db.Column('produto_id', db.Integer, db.ForeignKey('produto.id'), nullable=False),
@@ -48,17 +50,26 @@ tipo_servico_servico = db.Table ('tipo_servico_servico',
 )
 
 class Permissao:
-    ADMIN = 1
-    CLIENTE = 2
-    FUNCIONARIO = 3
-    CONVIDADO = 4
+    VER_SERVICOS = 1
+    VER_AGENDA = 2
+    MARCAR_SERVICO = 4
+    SOLICITAR_ORCAMENTO = 8
+    CADASTRO_BASICO = 16
+    ADMIN = 32
 
 class Tipo_Usuario(db.Model):
     __tablename__ = 'tipo_usuario'
     id = db.Column(db.Integer, primary_key=True)
     descricao = db.Column(db.String(64), unique=True, nullable=False)
+    default = db.Column(db.Boolean, default=False, index=True, nullable=False)
+    permissao = db.Column(db.Integer, nullable=False)
 
     usuarios = db.relationship('Usuario', backref='tipo_usuario', lazy='dynamic')
+
+    def __init__(self, **kwargs):
+        super(Tipo_Usuario, self).__init__(**kwargs)
+        if self.permissao is None:
+            self.permissao = 0
 
     def __repr__(self):
         return '<Tipo Usuário %r>' % self.descricao
@@ -78,7 +89,44 @@ class Tipo_Usuario(db.Model):
             raise ValidationError('tipo de usuario nao tem uma descricao')
         return Tipo_Usuario(descricao = descricao)
 
-class Usuario(db.Model):
+    def add_permissao(self, perm):
+        if not self.tem_permissao(perm):
+            self.permissao += perm
+
+    def remove_permissao(self, perm):
+        if not self.tem_permissao(perm):
+            self.permissao -= perm
+
+    def reset_permissao(self):
+        self.permissao = 0
+
+    def tem_permissao(self, perm):
+        return self.permissao & perm == perm
+
+    @staticmethod
+    def inserir_tipos_usuarios():
+        tipos_usuarios = {
+            'Usuario': [Permissao.VER_SERVICOS],
+            'Cliente': [Permissao.VER_AGENDA, Permissao.MARCAR_SERVICO, 
+                        Permissao.SOLICITAR_ORCAMENTO, Permissao.VER_SERVICOS],
+            'Funcionario': [Permissao.VER_AGENDA, Permissao.MARCAR_SERVICO, Permissao.SOLICITAR_ORCAMENTO,
+                            Permissao.CADASTRO_BASICO, Permissao.VER_SERVICOS],
+            'Administrador': [Permissao.VER_AGENDA, Permissao.MARCAR_SERVICO, Permissao.SOLICITAR_ORCAMENTO,
+                              Permissao.CADASTRO_BASICO, Permissao.ADMIN, Permissao.VER_SERVICOS]
+        }
+        default_tipo_usuario = 'Usuario'
+        for tp in tipos_usuarios:
+            tipo_usuario = Tipo_Usuario.query.filter_by(descricao=tp).first()
+            if tipo_usuario is None:
+                tipo_usuario = Tipo_Usuario(descricao=tp)
+            tipo_usuario.reset_permissao()
+            for perm in tipos_usuarios[tp]:
+                tipo_usuario.add_permissao(perm)
+            tipo_usuario.default = (tipo_usuario.descricao == default_tipo_usuario)
+            db.session.add(tipo_usuario)
+        db.session.commit()
+
+class Usuario(UserMixin, db.Model):
     __tablename__ = 'usuario'
     id = db.Column(db.Integer, primary_key=True)
     login = db.Column(db.String(64), unique=True, index=True, nullable=False)
@@ -89,6 +137,14 @@ class Usuario(db.Model):
 
     funcionarios = db.relationship('Funcionario', backref='usuario', uselist = False)
     clientes = db.relationship('Cliente', backref='usuario', uselist = False)
+
+    def __init__(self, **kwargs):
+        super(Usuario, self).__init__(**kwargs)
+        if self.tipo_usuario is None:
+            if self.email == current_app.config['FLASKY_ADMIN']:
+                self.tipo_usuario = Tipo_Usuario.query.filter_by(descricao='Administrador').first()
+            if self.tipo_usuario is None:
+                self.tipo_usuario = Tipo_Usuario.query.filter_by(default=True).first()
 
     @property
     def senha(self):
@@ -121,6 +177,10 @@ class Usuario(db.Model):
             raise ValidationError('tipo de usuario nao tem uma descricao')
         return Tipo_Usuario(descricao = descricao)
 
+    def generate_confirmation_token(self, expiration=3600):
+        s = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
+        return s.dumps({'id': self.id}).decode('utf-8')
+
     def generate_auth_token(self, expiration):
         s = Serializer(current_app.config['SECRET_KEY'], 
                        expires_in=expiration)
@@ -138,6 +198,9 @@ class Usuario(db.Model):
     def can(self, perm):
         return self.tipo_usuario is not None and self.tipo_usuario == perm
 
+    def is_administrador(self):
+        return self.can(Permissao.ADMIN)
+
     def confirm(self, token):
         s = Serializer(current_app.config['SECRET_KEY'])
         try:
@@ -149,9 +212,19 @@ class Usuario(db.Model):
         if data.get('confirm') != self.id:
             print('3333')
             return False
-        self.confirmed = True
+        self.confirmado = True
         db.session.add(self)
         return True
+
+class Usuario_Anonimo(AnonymousUserMixin):
+    def can(self, perm):
+        return False
+
+    def is_administrador(self):
+        return False
+
+login_manager = LoginManager()
+login_manager.anonymous_user = Usuario_Anonimo
 
 class Estado(db.Model):
     __tablename__ = 'estado'

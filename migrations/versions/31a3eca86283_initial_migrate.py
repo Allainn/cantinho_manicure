@@ -18,20 +18,22 @@ branch_labels = None
 depends_on = None
 
 def seed_data():
-    tb_tipo_usuario = sa.sql.table('tipo_usuario', sa.sql.column('descricao', sa.String))
-    op.bulk_insert(
-        tb_tipo_usuario,
-        [
-            {'id': 1, 'descricao': 'Administrador'},
-            {'id': 2, 'descricao': 'Cliente'},
-            {'id': 3, 'descricao': 'Funcionário'},
-            {'id': 4, 'descricao': 'Convidado'},
-        ]
-    )
+    # tb_tipo_usuario = sa.sql.table('tipo_usuario', sa.sql.column('descricao', sa.String))
+    # op.bulk_insert(
+    #     tb_tipo_usuario,
+    #     [
+    #         {'id': 1, 'descricao': 'Administrador'},
+    #         {'id': 2, 'descricao': 'Cliente'},
+    #         {'id': 3, 'descricao': 'Funcionário'},
+    #         {'id': 4, 'descricao': 'Convidado'},
+    #     ]
+    # )
 
-    tp = Tipo_Usuario.query.get(1)
-    user = Usuario(login='admin', email='allainncjt@gmail.com', senha='admin', tipo_usuario=tp)
-    db.session.add(user)
+    Tipo_Usuario.inserir_tipos_usuarios()
+
+    user = Usuario(login='admin', email='allainncjt@gmail.com', senha='admin')
+    user2 = Usuario(login='user', email='user@gmail.com', senha='user')
+    db.session.add_all([user, user2])
     db.session.commit()
 
 def upgrade():
@@ -67,6 +69,8 @@ def upgrade():
     op.create_table('tipo_usuario',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('descricao', sa.String(length=64), nullable=False),
+    sa.Column('default', sa.Boolean(), nullable=False),
+    sa.Column('permissao', sa.Integer(), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('descricao')
     )

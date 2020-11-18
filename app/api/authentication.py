@@ -11,6 +11,7 @@ def verify_password(email_or_token, password):
     if email_or_token == '':
         return False
     if password == '':
+        print("Entrou")
         g.current_user = Usuario.verify_auth_token(email_or_token)
         g.token_used = True
         return g.current_user is not None
