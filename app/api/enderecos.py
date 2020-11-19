@@ -21,20 +21,16 @@ def new_endereco():
     try:
         endereco = EnderecoSchema().load(request.json, session=db.session)
     except ValidationError as err:
-        #print(list(err.messages.values())[0][0])
         campo = list(err.messages.keys())[0].lower().capitalize()
         valor = list(err.messages.values())[0][0].lower()
         mensagem = campo + ' ' + valor
-        #abort(400, description=str(err))
         return bad_request2(str(err), mensagem)
     try:
         db.session.add(endereco)
         db.session.commit()
     except IntegrityError as err:
-        #print(err)
-        abort(400, description="Bad Resquest")
+       return bad_request2(str(err), "Erro ao inserir o endereço")
     except OperationalError as err:
-        #print(err._message().split('"'))
         msg = err._message().split('"')[1]
         return bad_request2(str(err), msg)
     return jsonify(endereco.to_json()), 201, \

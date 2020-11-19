@@ -14,7 +14,6 @@ def unauthorized(message):
     response.status_code = 401
     return response
 
-
 def forbidden(message):
     response = jsonify({'error': 'forbidden', 'message': message})
     response.status_code = 403
@@ -26,7 +25,7 @@ def bad_request2(message, messageUser=None):
     return response
 
 @api.errorhandler(500)
-def not_found(message):
+def not_found500(message):
     return jsonify(error=str(message)), 500
 
 @api.errorhandler(400)

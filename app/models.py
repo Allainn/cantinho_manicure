@@ -1,12 +1,16 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import db
 from flask import current_app, request, url_for
-from flask_login import UserMixin, AnonymousUserMixin, LoginManager
+from flask_login import UserMixin, AnonymousUserMixin
 from app.exceptions import ValidationError
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from marshmallow import fields
 from marshmallow_sqlalchemy import ModelSchema
-#from flask.ext.login import LoginManager
+from . import login_manager
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Usuario.query.get(int(user_id))
 
 produto_compra = db.Table ('produto_compra',
    db.Column('produto_id', db.Integer, db.ForeignKey('produto.id'), nullable=False),
@@ -170,13 +174,6 @@ class Usuario(UserMixin, db.Model):
         }
         return json_usuario
 
-    @staticmethod
-    def from_json(json_tipo_usuario):
-        descricao = json_tipo_usuario.get('descricao')
-        if descricao is None or descricao == '':
-            raise ValidationError('tipo de usuario nao tem uma descricao')
-        return Tipo_Usuario(descricao = descricao)
-
     def generate_confirmation_token(self, expiration=3600):
         s = Serializer(current_app.config['SECRET_KEY'], expires_in=expiration)
         return s.dumps({'id': self.id}).decode('utf-8')
@@ -196,7 +193,7 @@ class Usuario(UserMixin, db.Model):
         return Usuario.query.get(data['id'])
 
     def can(self, perm):
-        return self.tipo_usuario is not None and self.tipo_usuario == perm
+        return self.tipo_usuario is not None and self.tipo_usuario.tem_permissao(perm)
 
     def is_administrador(self):
         return self.can(Permissao.ADMIN)
@@ -217,13 +214,13 @@ class Usuario(UserMixin, db.Model):
         return True
 
 class Usuario_Anonimo(AnonymousUserMixin):
+    id = None
     def can(self, perm):
         return False
 
     def is_administrador(self):
         return False
 
-login_manager = LoginManager()
 login_manager.anonymous_user = Usuario_Anonimo
 
 class Estado(db.Model):
@@ -461,6 +458,10 @@ class Agenda(db.Model):
 class TipoUsuarioSchema(ModelSchema):
     class Meta:
         model = Tipo_Usuario
+
+class UsuarioSchema(ModelSchema):
+    class Meta:
+        model = Usuario
 
 class BairroSchema(ModelSchema):
     class Meta:
