@@ -58,4 +58,12 @@ def edit_bairro(id):
     bairro.cidade = cidade
     db.session.add(bairro)
     db.session.commit()
-    return jsonify(bairro.to_json())
+    return jsonify(bairro.to_json()), 204
+
+@api.route('/bairros/<int:id>', methods=['DELETE'])
+@permissao_requerida(Permissao.CADASTRO_BASICO)
+def delete_bairro(id):
+    bairro = Bairro.query.get_or_404(id)
+    db.session.delete(bairro)
+    db.session.commit()
+    return jsonify({"mensagem":"Bairro apagado com sucesso"}), 204
