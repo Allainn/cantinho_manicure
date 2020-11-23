@@ -53,13 +53,13 @@ def edit_endereco(id):
         elif 'descricao' in bairro.keys():
             bairro = Bairro.query.filter_by(descricao=bairro['descricao']).first()
         else:
-            return bad_request2("Campos id ou descricao da bairro não foram passados") 
+            return bad_request2("Campos id ou descricao do bairro não foram passados") 
         if bairro is None:
             return bad_request2("Bairro não existente", "Bairro não existente")
     endereco.bairro = bairro
     db.session.add(endereco)
     db.session.commit()
-    return jsonify(endereco.to_json())
+    return jsonify(endereco.to_json()), 200
 
 @api.route('/enderecos/<int:id>', methods=['DELETE'])
 @permissao_requerida(Permissao.CADASTRO_BASICO)
@@ -67,4 +67,4 @@ def delete_endereco(id):
     endereco = Endereco.query.get_or_404(id)
     db.session.delete(endereco)
     db.session.commit()
-    return jsonify({"mensagem":"Endereço apagado com sucesso"}), 204
+    return jsonify({"mensagem":"Endereço apagado com sucesso"}), 200

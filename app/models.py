@@ -318,6 +318,20 @@ class Funcionario(db.Model):
     numero = db.Column(db.String(10), nullable=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
 
+    def to_json(self):
+        json_funcionario = {
+            'id': self.id,
+            'url': url_for('api.get_endereco', id=self.id),
+            'nome': self.nome,
+            'telefone1': self.telefone1,
+            'telefone2': self.telefone2,
+            'data_nascimento': self.data_nascimento,
+            'endereco': self.endereco.to_json(),
+            'numero': self.numero,
+            'usuario': self.usuario.to_json()
+        }
+        return json_funcionario
+
     def __repr__(self):
         return '<Funcionario %r>' % self.nome
 
@@ -333,6 +347,22 @@ class Cliente(db.Model):
     instagram = db.Column(db.String(64), nullable=True)
     facebook = db.Column(db.String(64), nullable=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+
+    def to_json(self):
+        json_cliente = {
+            'id': self.id,
+            'url': url_for('api.get_endereco', id=self.id),
+            'nome': self.nome,
+            'endereco': self.endereco.to_json(),
+            'numero': self.numero,
+            'telefone1': self.telefone1,
+            'telefone2': self.telefone2,
+            'data_nascimento': self.data_nascimento,
+            'instagram': self.instagram,
+            'facebook': self.facebook,
+            'usuario': self.usuario.to_json()
+        }
+        return json_cliente
 
     def __repr__(self):
         return '<Cliente %r>' % self.nome
@@ -351,6 +381,24 @@ class Fornecedor(db.Model):
     instagram = db.Column(db.String(64), nullable=True)
     facebook = db.Column(db.String(64), nullable=True)
     observacao = db.Column(db.String(256), nullable=True)
+
+    def to_json(self):
+        json_fornecedor = {
+            'id': self.id,
+            'url': url_for('api.get_endereco', id=self.id),
+            'nome': self.nome,
+            'email': self.email,
+            'endereco': self.endereco.to_json(),
+            'numero': self.numero,
+            'telefone1': self.telefone1,
+            'telefone2': self.telefone2,
+            'data_nascimento': self.data_nascimento,
+            'site': self.site,
+            'instagram': self.instagram,
+            'facebook': self.facebook,
+            'observacao': self.observacao
+        }
+        return json_fornecedor
 
     def __repr__(self):
         return '<Fornecedor %r>' % self.nome
@@ -470,3 +518,15 @@ class BairroSchema(ModelSchema):
 class EnderecoSchema(ModelSchema):
     class Meta:
         model = Endereco
+
+class FuncionarioSchema(ModelSchema):
+    class Meta:
+        model = Funcionario
+
+class ClienteSchema(ModelSchema):
+    class Meta:
+        model = Cliente
+
+class FornecedorSchema(ModelSchema):
+    class Meta:
+        model = Fornecedor
