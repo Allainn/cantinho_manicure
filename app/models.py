@@ -321,7 +321,7 @@ class Funcionario(db.Model):
     def to_json(self):
         json_funcionario = {
             'id': self.id,
-            'url': url_for('api.get_endereco', id=self.id),
+            'url': url_for('api.get_funcionario', id=self.id),
             'nome': self.nome,
             'telefone1': self.telefone1,
             'telefone2': self.telefone2,
@@ -351,7 +351,7 @@ class Cliente(db.Model):
     def to_json(self):
         json_cliente = {
             'id': self.id,
-            'url': url_for('api.get_endereco', id=self.id),
+            'url': url_for('api.get_cliente', id=self.id),
             'nome': self.nome,
             'endereco': self.endereco.to_json(),
             'numero': self.numero,
@@ -385,7 +385,7 @@ class Fornecedor(db.Model):
     def to_json(self):
         json_fornecedor = {
             'id': self.id,
-            'url': url_for('api.get_endereco', id=self.id),
+            'url': url_for('api.get_fornecedor', id=self.id),
             'nome': self.nome,
             'email': self.email,
             'endereco': self.endereco.to_json(),
@@ -409,6 +409,17 @@ class Tipo_Quantidade(db.Model):
     descricao = db.Column(db.String(64), nullable=True)
     sigla = db.Column(db.String(2), nullable=False)
 
+    produto = db.relationship('Produto', backref='tipo_quantidade', lazy='dynamic')
+
+    def to_json(self):
+        json_tipo_quantidade = {
+            'id': self.id,
+            'url': url_for('api.get_tipo_quantidade', id=self.id),
+            'descricao': self.descricao,
+            'sigla': self.sigla
+        }
+        return json_tipo_quantidade
+
     def __repr__(self):
         return '<Tipo Quantidade %r>' % self.sigla
 
@@ -425,6 +436,18 @@ class Produto(db.Model):
                                secondary = produto_compra,  
                                backref=db.backref('produto', lazy='dynamic'),
                                lazy='dynamic')
+
+    def to_json(self):
+        json_produto = {
+            'id': self.id,
+            'url': url_for('api.get_produto', id=self.id),
+            'descricao': self.descricao,
+            'quantidade': self.quantidade,
+            'tipo_quantidade': self.tipo_quantidade.to_json(),
+            'preco_un': str(self.preco_un),
+            'observacao': self.observacao
+        }
+        return json_produto
 
 class Equipamento(db.Model):
     __tablename__ = 'equipamento'
@@ -530,3 +553,11 @@ class ClienteSchema(ModelSchema):
 class FornecedorSchema(ModelSchema):
     class Meta:
         model = Fornecedor
+
+class TipoQuantidadeSchema(ModelSchema):
+    class Meta:
+        model = Tipo_Quantidade
+
+class ProdutoSchema(ModelSchema):
+    class Meta:
+        model = Produto
