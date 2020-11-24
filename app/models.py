@@ -15,37 +15,37 @@ def load_user(user_id):
 produto_compra = db.Table ('produto_compra',
    db.Column('produto_id', db.Integer, db.ForeignKey('produto.id'), nullable=False),
    db.Column('compra_id', db.Integer, db.ForeignKey('compra.id'), nullable=False),
-   db.Column('valor', db.Numeric(10,2), nullable=False)
+   #db.Column('valor', db.Numeric(10,2), nullable=False)
 )
 
 produto_tipo_servico = db.Table ('produto_tipo_servico',
    db.Column('produto_id', db.Integer, db.ForeignKey('produto.id'), nullable=False),
    db.Column('tipo_servico_id', db.Integer, db.ForeignKey('tipo_servico.id'), nullable=False),
-   db.Column('quantidade', db.Integer, nullable=False)
+   #db.Column('quantidade', db.Integer, nullable=False)
 )
 
 equipamento_tipo_servico = db.Table ('equipamento_tipo_servico',
    db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamento.id'), nullable=False),
    db.Column('tipo_servico_id', db.Integer, db.ForeignKey('tipo_servico.id'), nullable=False),
-   db.Column('tempo', db.Integer, nullable=False)
+   #db.Column('tempo', db.Integer, nullable=False)
 )
 
 equipamento_compra = db.Table ('equipamento_compra',
    db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamento.id'), nullable=False),
    db.Column('compra_id', db.Integer, db.ForeignKey('compra.id'), nullable=False),
-   db.Column('valor', db.Numeric(10,2), nullable=False)
+   #db.Column('valor', db.Numeric(10,2), nullable=False)
 )
 
 produto_servico = db.Table ('produto_servico',
    db.Column('produto_id', db.Integer, db.ForeignKey('produto.id'), nullable=False),
    db.Column('servico_id', db.Integer, db.ForeignKey('servico.id'), nullable=False),
-   db.Column('quantidade', db.Integer, nullable=False)
+   #db.Column('quantidade', db.Integer, nullable=False)
 )
 
 equipamento_servico = db.Table ('equipamento_servico',
    db.Column('equipamento_id', db.Integer, db.ForeignKey('equipamento.id'), nullable=False),
    db.Column('servico_id', db.Integer, db.ForeignKey('servico.id'), nullable=False),
-   db.Column('tempo', db.Integer, nullable=False)
+   #db.Column('tempo', db.Integer, nullable=False)
 )
 
 tipo_servico_servico = db.Table ('tipo_servico_servico',
@@ -382,6 +382,8 @@ class Fornecedor(db.Model):
     facebook = db.Column(db.String(64), nullable=True)
     observacao = db.Column(db.String(256), nullable=True)
 
+    produto = db.relationship('Compra', backref='fornecedor', lazy='dynamic')
+
     def to_json(self):
         json_fornecedor = {
             'id': self.id,
@@ -432,10 +434,10 @@ class Produto(db.Model):
     preco_un = db.Column(db.Numeric(10,2), nullable=False)
     observacao = db.Column(db.String(256), nullable=True)
 
-    compras = db.relationship('Compra', 
-                               secondary = produto_compra,  
-                               backref=db.backref('produto', lazy='dynamic'),
-                               lazy='dynamic')
+    # compras = db.relationship('Compra', 
+    #                            secondary = produto_compra,  
+    #                            backref=db.backref('produto', lazy='dynamic'),
+    #                            lazy='dynamic')
 
     def to_json(self):
         json_produto = {
@@ -457,10 +459,21 @@ class Equipamento(db.Model):
     preco_tempo = db.Column(db.Numeric(10,2), nullable=False)
     observacao = db.Column(db.String(256), nullable=True)
 
-    compras = db.relationship('Compra', 
-                               secondary = equipamento_compra,  
-                               backref=db.backref('equipamento', lazy='dynamic'),
-                               lazy='dynamic')
+    # compras = db.relationship('Compra', 
+    #                            secondary = equipamento_compra,  
+    #                            backref=db.backref('equipamento', lazy='dynamic'),
+    #                            lazy='dynamic')
+
+    def to_json(self):
+        json_equipamento = {
+            'id': self.id,
+            'url': url_for('api.get_equipamento', id=self.id),
+            'descricao': self.descricao,
+            'tempo': self.tempo,
+            'preco_tempo': str(self.preco_tempo),
+            'observacao': self.observacao
+        }
+        return json_equipamento
 
 class Compra(db.Model):
     __tablename__ = 'compra'
@@ -479,6 +492,19 @@ class Compra(db.Model):
                                    backref=db.backref('compra', lazy='dynamic'), 
                                    lazy='dynamic')
 
+    def to_json(self):
+        json_compra = {
+            'id': self.id,
+            'url': url_for('api.get_compra', id=self.id),
+            'fornecedor': self.fornecedor.to_json(),
+            'produtos': [p.to_json() for p in self.produtos.all()],
+            'equipamentos': [e.to_json() for e in self.equipamentos.all()],
+            'valor': str(self.valor),
+            'data': self.data,
+            'observacao': self.observacao
+        }
+        return json_compra
+
 class Tipo_Servico(db.Model):
     __tablename__ = 'tipo_servico'
     id = db.Column(db.Integer, primary_key=True)
@@ -496,10 +522,24 @@ class Tipo_Servico(db.Model):
                                    backref=db.backref('tipo_servico', lazy='dynamic'), 
                                    lazy='dynamic')
 
+    def to_json(self):
+        json_tipo_servico = {
+            'id': self.id,
+            'url': url_for('api.get_tipo_servico', id=self.id),
+            'descricao': self.descricao,
+            'tempo': self.tempo,
+            'produtos': [p.to_json() for p in self.produtos.all()],
+            'equipamentos': [e.to_json() for e in self.equipamentos.all()],
+            'valor': str(self.valor),
+            'observacao': self.observacao
+        }
+        return json_tipo_servico
+
 class Servico(db.Model):
     __tablename__ = 'servico'
     id = db.Column(db.Integer, primary_key=True)
     cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=False)
+    data = db.Column(db.Date, nullable=False)
     valor = db.Column(db.Numeric(10,2), nullable=False)
     tempo = db.Column(db.Integer, nullable=False)
     observacao = db.Column(db.String(256), nullable=True)
@@ -518,6 +558,21 @@ class Servico(db.Model):
                                    lazy='dynamic')
     agenda = db.relationship('Agenda', backref='servico', uselist = False)
 
+    def to_json(self):
+        json_servico = {
+            'id': self.id,
+            'url': url_for('api.get_servico', id=self.id),
+            'cliente': self.cliente.to_json(),
+            'tipos_servico': [ts.to_json() for ts in self.tipos_servico.all()],
+            'produtos': [p.to_json() for p in self.produtos.all()],
+            'equipamentos': [e.to_json() for e in self.equipamentos.all()],
+            'valor': str(self.valor),
+            'tempo': self.tempo,
+            'data': self.data,
+            'observacao': self.observacao
+        }
+        return json_servico
+
 class Agenda(db.Model):
     __tablename__ = 'agenda'
     id = db.Column(db.Integer, primary_key=True)
@@ -525,6 +580,17 @@ class Agenda(db.Model):
     servico_id = db.Column(db.Integer, db.ForeignKey('servico.id'), nullable=False)
     data = db.Column(db.DateTime, nullable=False)
     observacao = db.Column(db.String(256), nullable=True)
+
+    def to_json(self):
+        json_agenda = {
+            'id': self.id,
+            'url': url_for('api.get_agenda', id=self.id),
+            'cliente': self.cliente.to_json(),
+            'servico': self.servico.to_json(),
+            'data': self.data,
+            'observacao': self.observacao
+        }
+        return json_agenda
 
 class TipoUsuarioSchema(ModelSchema):
     class Meta:
@@ -561,3 +627,23 @@ class TipoQuantidadeSchema(ModelSchema):
 class ProdutoSchema(ModelSchema):
     class Meta:
         model = Produto
+
+class EquipamentoSchema(ModelSchema):
+    class Meta:
+        model = Equipamento
+
+class CompraSchema(ModelSchema):
+    class Meta:
+        model = Compra
+
+class Tipo_ServicoSchema(ModelSchema):
+    class Meta:
+        model = Tipo_Servico
+
+class ServicoSchema(ModelSchema):
+    class Meta:
+        model = Servico
+
+class AgendaSchema(ModelSchema):
+    class Meta:
+        model = Agenda
