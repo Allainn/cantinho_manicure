@@ -19,6 +19,16 @@ def get_endereco(id):
     endereco = Endereco.query.get_or_404(id)
     return jsonify(endereco.to_json())
 
+@api.route('/enderecos/<int:id>/<string:rua>/<string:comp>')
+@permissao_requerida(Permissao.CADASTRO_BASICO)
+def get_endereco_bairro(id, rua, comp):
+    bairro = Bairro.query.get_or_404(id)
+    endereco = Endereco.query.filter_by(rua=rua, complemento=comp, bairro=bairro).first()
+    try:
+        return jsonify(endereco.to_json())
+    except:
+        return bad_request2("Endereco nao encontrado", "Endereço não encontrado")
+
 @api.route('/enderecos/', methods=['POST'])
 @permissao_requerida(Permissao.CADASTRO_BASICO)
 def new_endereco():

@@ -70,6 +70,7 @@ def edit_cliente(id):
 @permissao_requerida(Permissao.CADASTRO_BASICO)
 def delete_cliente(id):
     cliente = Cliente.query.get_or_404(id)
+    cli_json = cliente.to_json()
     db.session.delete(cliente)
     db.session.commit()
-    return jsonify({"mensagem":"Cliente deletado com sucesso"}), 200
+    return jsonify(cli_json), 200

@@ -54,6 +54,7 @@ def edit_agenda(id):
 @permissao_requerida(Permissao.MARCAR_SERVICO)
 def delete_agenda(id):
     agenda = Agenda.query.get_or_404(id)
+    age_json = agenda.to_json
     db.session.delete(agenda)
     db.session.commit()
-    return jsonify({"mensagem":"Agenda deletado com sucesso"}), 200
+    return jsonify(age_json), 200

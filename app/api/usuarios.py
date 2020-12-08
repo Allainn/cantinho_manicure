@@ -42,6 +42,12 @@ def get_usuario(id):
     usuario = Usuario.query.get_or_404(id)
     return jsonify(usuario.to_json())
 
+@api.route('/usuarios/<string:email>')
+@permissao_requerida(Permissao.VER_SERVICOS)
+def get_usuario_email(email):
+    usuario = Usuario.query.filter_by(email=email).first()
+    return jsonify(usuario.to_json())
+
 @api.route('/usuarios/<int:id>', methods=['PUT'])
 @admin_requerido
 def edit_usuario(id):
@@ -62,3 +68,11 @@ def edit_usuario(id):
     db.session.add(usuario)
     db.session.commit()
     return jsonify(usuario.to_json())
+
+@api.route('/usuarios/<int:id>', methods=['DELETE'])
+@admin_requerido
+def delete_usuario(id):
+    usuario = Usuario.query.get_or_404(id)
+    db.session.delete(usuario)
+    db.session.commit()
+    return jsonify({"mensagem":"Usuário deletado com sucesso"}), 200

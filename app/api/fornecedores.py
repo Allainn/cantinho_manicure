@@ -48,7 +48,6 @@ def edit_fornecedor(id):
     fornecedor.email = request.json.get('email', fornecedor.email)
     fornecedor.telefone1 = request.json.get('telefone1', fornecedor.telefone1)
     fornecedor.telefone2 = request.json.get('telefone2', fornecedor.telefone2)
-    fornecedor.data_nascimento = request.json.get('data_nascimento', fornecedor.data_nascimento)
     fornecedor.numero = request.json.get('numero', fornecedor.numero)
     fornecedor.site = request.json.get('site', fornecedor.site)
     fornecedor.instagram = request.json.get('instagram', fornecedor.instagram)

@@ -68,6 +68,7 @@ def edit_funcionario(id):
 @permissao_requerida(Permissao.ADMIN)
 def delete_funcionario(id):
     funcionario = Funcionario.query.get_or_404(id)
+    fun_json = funcionario.to_json()
     db.session.delete(funcionario)
     db.session.commit()
-    return jsonify({"mensagem":"Funcionario deletado com sucesso"}), 200
+    return jsonify(fun_json), 200

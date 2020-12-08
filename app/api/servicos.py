@@ -45,6 +45,7 @@ def new_servico():
 def edit_servico(id):
     servico = Servico.query.get_or_404(id)
     servico.data = request.json.get('data', servico.data)
+    servico.hora = request.json.get('hora', servico.data)
     servico.valor = request.json.get('valor', servico.valor)
     servico.tempo = request.json.get('tempo', servico.tempo)
     servico.observacao = request.json.get('observacao', servico.observacao)

@@ -19,6 +19,16 @@ def get_bairro(id):
     bairro = Bairro.query.get_or_404(id)
     return jsonify(bairro.to_json())
 
+@api.route('/bairros/<int:id>/<string:descricao>')
+@permissao_requerida(Permissao.CADASTRO_BASICO)
+def get_bairro_cidade(id, descricao):
+    cidade = Cidade.query.get_or_404(id)
+    bairro = Bairro.query.filter_by(descricao=descricao, cidade=cidade).first()
+    try:
+        return jsonify(bairro.to_json())
+    except:
+        return bad_request2("Bairro nao encontrado", "Bairro não encontrado")
+
 @api.route('/bairros/', methods=['POST'])
 @permissao_requerida(Permissao.CADASTRO_BASICO)
 def new_bairro():
@@ -64,6 +74,7 @@ def edit_bairro(id):
 @permissao_requerida(Permissao.CADASTRO_BASICO)
 def delete_bairro(id):
     bairro = Bairro.query.get_or_404(id)
+    bai_json = bairro.to_json()
     db.session.delete(bairro)
     db.session.commit()
-    return jsonify({"mensagem":"Bairro apagado com sucesso"}), 204
+    return jsonify(bai_json), 204

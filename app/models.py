@@ -15,7 +15,6 @@ def load_user(user_id):
 produto_compra = db.Table ('produto_compra',
    db.Column('produto_id', db.Integer, db.ForeignKey('produto.id'), nullable=False),
    db.Column('compra_id', db.Integer, db.ForeignKey('compra.id'), nullable=False),
-   #db.Column('valor', db.Numeric(10,2), nullable=False)
 )
 
 produto_tipo_servico = db.Table ('produto_tipo_servico',
@@ -241,7 +240,7 @@ class Estado(db.Model):
         return json_estado
 
     def __repr__(self):
-        return '<Estado %r>' % self.descricao
+        return '<Estado %r>' % self.nome
 
 class Cidade(db.Model):
     __tablename__ = 'cidade'
@@ -319,13 +318,14 @@ class Funcionario(db.Model):
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
 
     def to_json(self):
+        data_nas = self.data_nascimento.strftime("%d/%m/%Y") if self.data_nascimento else ''
         json_funcionario = {
             'id': self.id,
             'url': url_for('api.get_funcionario', id=self.id),
             'nome': self.nome,
             'telefone1': self.telefone1,
             'telefone2': self.telefone2,
-            'data_nascimento': self.data_nascimento,
+            'data_nascimento': data_nas,
             'endereco': self.endereco.to_json(),
             'numero': self.numero,
             'usuario': self.usuario.to_json()
@@ -346,9 +346,12 @@ class Cliente(db.Model):
     data_nascimento = db.Column(db.Date, nullable=True)
     instagram = db.Column(db.String(64), nullable=True)
     facebook = db.Column(db.String(64), nullable=True)
-    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuario.id'), nullable=True)
+
+    servico = db.relationship('Servico', backref='cliente', lazy='dynamic')
 
     def to_json(self):
+        data_nas = self.data_nascimento.strftime("%d/%m/%Y") if self.data_nascimento else ''
         json_cliente = {
             'id': self.id,
             'url': url_for('api.get_cliente', id=self.id),
@@ -357,10 +360,10 @@ class Cliente(db.Model):
             'numero': self.numero,
             'telefone1': self.telefone1,
             'telefone2': self.telefone2,
-            'data_nascimento': self.data_nascimento,
+            'data_nascimento': data_nas,
             'instagram': self.instagram,
             'facebook': self.facebook,
-            'usuario': self.usuario.to_json()
+            'usuario': self.usuario.to_json() if self.usuario else {}
         }
         return json_cliente
 
@@ -376,7 +379,6 @@ class Fornecedor(db.Model):
     numero = db.Column(db.String(10), nullable=True)
     telefone1 = db.Column(db.String(20), nullable=False)
     telefone2 = db.Column(db.String(20), nullable=True)
-    data_nascimento = db.Column(db.Date, nullable=True)
     site = db.Column(db.String(64), nullable=True)
     instagram = db.Column(db.String(64), nullable=True)
     facebook = db.Column(db.String(64), nullable=True)
@@ -394,7 +396,6 @@ class Fornecedor(db.Model):
             'numero': self.numero,
             'telefone1': self.telefone1,
             'telefone2': self.telefone2,
-            'data_nascimento': self.data_nascimento,
             'site': self.site,
             'instagram': self.instagram,
             'facebook': self.facebook,
@@ -493,6 +494,7 @@ class Compra(db.Model):
                                    lazy='dynamic')
 
     def to_json(self):
+        data = self.data.strftime("%d/%m/%Y") if self.data else ''
         json_compra = {
             'id': self.id,
             'url': url_for('api.get_compra', id=self.id),
@@ -500,7 +502,7 @@ class Compra(db.Model):
             'produtos': [p.to_json() for p in self.produtos.all()],
             'equipamentos': [e.to_json() for e in self.equipamentos.all()],
             'valor': str(self.valor),
-            'data': self.data,
+            'data': data,
             'observacao': self.observacao
         }
         return json_compra
@@ -540,6 +542,7 @@ class Servico(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     cliente_id = db.Column(db.Integer, db.ForeignKey('cliente.id'), nullable=False)
     data = db.Column(db.Date, nullable=False)
+    hora = db.Column(db.String(8), nullable=False)
     valor = db.Column(db.Numeric(10,2), nullable=False)
     tempo = db.Column(db.Integer, nullable=False)
     observacao = db.Column(db.String(256), nullable=True)
@@ -559,6 +562,7 @@ class Servico(db.Model):
     agenda = db.relationship('Agenda', backref='servico', uselist = False)
 
     def to_json(self):
+        data = self.data.strftime("%d/%m/%Y") if self.data else ''
         json_servico = {
             'id': self.id,
             'url': url_for('api.get_servico', id=self.id),
@@ -568,7 +572,8 @@ class Servico(db.Model):
             'equipamentos': [e.to_json() for e in self.equipamentos.all()],
             'valor': str(self.valor),
             'tempo': self.tempo,
-            'data': self.data,
+            'data': data,
+            'hora': self.hora,
             'observacao': self.observacao
         }
         return json_servico
